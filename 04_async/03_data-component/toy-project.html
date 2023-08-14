@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="shortcut icon" href="#">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        /* 사용 api
+            1. Advice Slip
+            2. GooGle Cloud Translation API
+        */
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [quote, setQuote] = useState('');
+            const [translatedQuote, setTranslatedQuote] = useState('');
+
+            useEffect(() => {
+                fetchRandomQuote();
+            }, []);
+
+            const fetchRandomQuote = async () => {
+                try {
+                    const response = await axios.get('https://api.adviceslip.com/advice');
+                    const randomAdvice = response.data.slip.advice;
+
+                    setQuote(randomAdvice);
+
+                    translateQuote(randomAdvice);
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+
+            const translateQuote = async (quoteToTranslate) => {
+                try {
+                    const googleTranslateApiUrl = 'https://translation.googleapis.com/language/translate/v2';
+                    const googleTranslateApiKey = 'AIzaSyCdmlQmiZXHspOOLPZU4e1efWmXU0QTq_s';
+
+                    const response = await axios.post(
+                        `${googleTranslateApiUrl}?key=${googleTranslateApiKey}`,
+                        {
+                            q: quoteToTranslate,
+                            source: 'en',
+                            target: 'ko'
+                        }
+                    );
+
+                    setTranslatedQuote(response.data.data.translations[0].translatedText);
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+
+            return (
+                <div>
+                    <h1>랜덤 유명명언 생성기</h1>
+                    <button onClick={fetchRandomQuote}>새로운 명언</button>
+
+                    {quote && (
+                        <div>
+                            <p>{quote}</p>
+                        </div>
+                    )}
+
+                    {translatedQuote && (
+                        <div>
+                            <p>번역: {translatedQuote}</p>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+    
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
